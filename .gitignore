@@ -7,3 +7,4 @@ env/
 *.log
 instance/
 .pytest_cache/
+data/opportunities_cache.json

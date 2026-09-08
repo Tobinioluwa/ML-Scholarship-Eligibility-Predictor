@@ -62,16 +62,49 @@ re-run the steps below.
 ├── requirements.txt
 ├── data/
 │   ├── raw/                   # Real, unmodified source datasets + SOURCES.md
-│   └── scholarship_data.csv   # Built dataset (real rows + derived label)
+│   ├── scholarship_data.csv   # Built dataset (real rows + derived label)
+│   └── opportunities_cache.json  # Scraped listings cache (generated, gitignored)
 ├── src/
 │   ├── prepare_dataset.py     # Builds the dataset from real data (documented label rule)
-│   └── train_model.py         # Trains + evaluates + saves the model
+│   ├── train_model.py         # Trains + evaluates + saves the model
+│   └── scholarship_scraper.py # Scrapes latest opportunities (see below)
 ├── model/
 │   ├── scholarship_pipeline.joblib  # Trained scikit-learn Pipeline
 │   └── metrics.json                 # Held-out test + cross-validation metrics
 ├── templates/                 # HTML (Jinja2) templates
 └── static/                    # CSS + generated charts
 ```
+
+## Live scholarship opportunities (`/opportunities`)
+
+A second page shows currently open scholarships/fellowships pulled from
+public RSS feeds, with filters and a direct link to apply on each listing.
+
+**How it works:**
+- `src/scholarship_scraper.py` fetches **RSS feeds only** (never raw HTML)
+  from a small, editable list of global scholarship-news sites
+  ([OpportunityDesk](https://opportunitydesk.org/), [Scholars4Dev](https://www.scholars4dev.com/)) —
+  RSS is explicitly meant for syndication, so this is a much more stable and
+  respectful way to pull "latest opportunities" than scraping arbitrary HTML.
+- `robots.txt` is checked before every fetch; a source is skipped if it
+  disallows the feed path.
+- Each entry's study level (PhD, Master's, etc.), region, "fully funded"
+  status, and any stated deadline are extracted with simple keyword/regex
+  matching over the title and summary — **best-effort, not authoritative**.
+  Every card links straight back to the original source so you can verify
+  the real deadline and requirements before applying.
+- Results are cached to `data/opportunities_cache.json` for 12 hours so the
+  page stays fast and doesn't hammer the source sites on every visit; click
+  **Refresh now** on the page (or visit `/opportunities?refresh=1`) to force
+  an immediate re-fetch. If a fetch fails, the page falls back to the last
+  successful results (or a friendly message if there are none yet) instead
+  of crashing.
+- Filters (search text, study level, region, fully-funded-only) are applied
+  server-side via query parameters, so results are shareable/linkable.
+
+To add more sources, add `{name, homepage, feed_url}` to the `SOURCES` list
+in `src/scholarship_scraper.py` — no other code changes needed. To refresh
+the cache manually from the command line: `python src/scholarship_scraper.py`.
 
 ## Setup & Usage
 
@@ -124,7 +157,7 @@ This repo is ready to deploy on [Render](https://render.com)'s free tier
 
 - `Procfile` — tells the host to run `gunicorn app:app` (a production server)
 - `render.yaml` — a Blueprint file Render can auto-detect
-- `runtime.txt` — pins the Python version
+- `.python-version` — pins the Python version (Render reads this, not the older Heroku-style `runtime.txt`)
 
 **Steps:**
 
@@ -160,3 +193,7 @@ No paid APIs or services are used anywhere in this project.
 - This tool should **not** be used as the sole basis for real financial-aid
   or scholarship decisions. Always pair automated screening with human
   review.
+- The `/opportunities` page's deadline, level, and region tags are
+  auto-extracted from third-party listing text and may be incomplete, stale,
+  or wrong — always confirm details on the linked source page before
+  applying to anything.
