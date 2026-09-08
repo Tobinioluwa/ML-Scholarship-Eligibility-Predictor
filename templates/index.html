@@ -1,152 +1,259 @@
 {% extends "base.html" %}
-{% block title %}Predict Eligibility · Scholarship Eligibility Predictor{% endblock %}
+{% block title %}Scholarship Eligibility Predictor{% endblock %}
 {% block content %}
 
-<div class="hero text-center mb-5">
-  <h1 class="fw-bold">Check Scholarship Eligibility in Seconds</h1>
-  <p class="lead text-muted">
-    Fill in the applicant's details below and our machine learning model —
-    trained on real student records — will estimate their scholarship
-    eligibility.
-  </p>
-</div>
-
-{% if error %}
-<div class="alert alert-danger">{{ error }}</div>
-{% endif %}
-
-<div class="card shadow-sm form-card mx-auto">
-  <div class="card-body p-4 p-md-5">
-    <form action="{{ url_for('predict') }}" method="post" class="row g-4">
-
-      <div class="col-12">
-        <h5 class="section-title"><i class="bi bi-person-lines-fill me-2"></i>Personal Details</h5>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Age</label>
-        <input type="number" class="form-control" name="age" min="14" max="25" value="17" required />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Gender</label>
-        <select class="form-select" name="gender" required>
-          <option value="Female">Female</option>
-          <option value="Male">Male</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Region</label>
-        <select class="form-select" name="region" required>
-          <option value="Urban">Urban</option>
-          <option value="Rural">Rural</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Household Size</label>
-        <select class="form-select" name="household_size" required>
-          <option value="3 or fewer">3 or fewer people</option>
-          <option value="More than 3">More than 3 people</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Mother's Education Level</label>
-        <select class="form-select" name="mother_education" required>
-          <option value="0">None</option>
-          <option value="1">Primary education</option>
-          <option value="2">5th–9th grade</option>
-          <option value="3">Secondary education</option>
-          <option value="4" selected>Higher education</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Father's Education Level</label>
-        <select class="form-select" name="father_education" required>
-          <option value="0">None</option>
-          <option value="1">Primary education</option>
-          <option value="2">5th–9th grade</option>
-          <option value="3">Secondary education</option>
-          <option value="4" selected>Higher education</option>
-        </select>
+<!-- ============ HERO ============ -->
+<section class="hero-section">
+  <div class="hero-blob-1"></div>
+  <div class="hero-blob-2"></div>
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <span class="hero-eyebrow">
+          <i class="bi bi-mortarboard"></i>
+          ML-Powered &middot; Free &amp; Open Source
+        </span>
+        <h1 class="hero-title">Know your scholarship odds <em>before</em> you apply.</h1>
+        <p class="hero-subtext">
+          A machine learning model trained on real student records estimates your
+          scholarship eligibility in seconds — so you know where you stand,
+          instantly and for free.
+        </p>
+        <div class="hero-cta-row">
+          <a href="#predict-form" class="btn btn-primary btn-lg px-4">
+            Predict Eligibility
+            <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+          <a href="{{ url_for('about') }}" class="hero-secondary-link">
+            See how it works
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
       </div>
 
-      <div class="col-12 mt-4">
-        <h5 class="section-title"><i class="bi bi-mortarboard me-2"></i>Academic Profile</h5>
+      <div class="col-lg-5">
+        <div class="hero-preview-card position-relative">
+          <div class="preview-card">
+            <div class="preview-card-header">
+              <span>PREDICTION RESULT</span>
+              <span class="preview-dot"></span>
+            </div>
+            <div class="d-flex align-items-center gap-4">
+              <svg width="100" height="100" viewBox="0 0 120 120" class="flex-shrink-0">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-soft)" stroke-width="12"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="47" transform="rotate(-90 60 60)"/>
+                <text x="60" y="56" text-anchor="middle" font-family="Newsreader, serif" font-size="28" font-weight="600" fill="var(--ink)">85%</text>
+                <text x="60" y="75" text-anchor="middle" font-family="Manrope, sans-serif" font-size="10" font-weight="700" fill="var(--ink-soft)" letter-spacing="0.04em">ELIGIBLE</text>
+              </svg>
+              <div class="flex-grow-1 d-flex flex-column gap-2">
+                <div>
+                  <div class="d-flex justify-content-between small fw-semibold mb-1" style="color: var(--ink-soft);">
+                    <span>Merit</span><span>Strong</span>
+                  </div>
+                  <div class="preview-bar-track"><div class="preview-bar-fill" style="width:82%; background: var(--primary);"></div></div>
+                </div>
+                <div>
+                  <div class="d-flex justify-content-between small fw-semibold mb-1" style="color: var(--ink-soft);">
+                    <span>Need</span><span>Moderate</span>
+                  </div>
+                  <div class="preview-bar-track"><div class="preview-bar-fill" style="width:58%; background: var(--accent);"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="preview-badge">
+            <i class="bi bi-check-circle-fill" style="color: var(--accent);"></i>
+            Trained on real student data
+          </div>
+        </div>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Prior Grade 1 (0–20)</label>
-        <input type="number" step="0.1" class="form-control" name="prior_grade_1" min="0" max="20" value="12" required />
+    </div>
+
+    <div class="stats-row mt-5">
+      <div class="stat-item">
+        <span class="stat-number">395</span>
+        <span class="stat-label">Real student records — not synthetic</span>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Prior Grade 2 (0–20)</label>
-        <input type="number" step="0.1" class="form-control" name="prior_grade_2" min="0" max="20" value="12" required />
+      <div class="stat-item">
+        <span class="stat-number">86%</span>
+        <span class="stat-label">Cross-validated model accuracy</span>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Current Grade (0–20)</label>
-        <input type="number" step="0.1" class="form-control" name="current_grade" min="0" max="20" value="12" required />
+      <div class="stat-item">
+        <span class="stat-number">100%</span>
+        <span class="stat-label">Free &amp; open-source, always</span>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Weekly Study Time</label>
-        <select class="form-select" name="weekly_study_time" required>
-          <option value="1">Less than 2 hours</option>
-          <option value="2" selected>2 to 5 hours</option>
-          <option value="3">5 to 10 hours</option>
-          <option value="4">More than 10 hours</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Past Class Failures</label>
-        <input type="number" class="form-control" name="past_failures" min="0" max="4" value="0" required />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Absences (this year)</label>
-        <input type="number" class="form-control" name="absences" min="0" max="100" value="4" required />
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Extracurricular Activities?</label>
-        <select class="form-select" name="extracurricular_activities" required>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FORM SECTION ============ -->
+<section class="predict-section" id="predict-form">
+  <div class="container">
+    <div class="text-center mx-auto mb-5" style="max-width: 600px;">
+      <span class="section-eyebrow">Get Your Estimate</span>
+      <h2 class="section-heading">Check your eligibility</h2>
+      <p class="section-subtext">Three quick sections. Takes about a minute — the model does the rest.</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger mx-auto" style="max-width: 1000px;">{{ error }}</div>
+    {% endif %}
+
+    <form action="{{ url_for('predict') }}" method="post" class="mx-auto" style="max-width: 1000px;">
+
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">1</div>
+          <div>
+            <p class="step-title">Personal Details</p>
+            <p class="step-subtitle">Age, region and household</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <label class="form-label">Age</label>
+            <input type="number" class="form-control" name="age" min="14" max="25" value="17" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Gender</label>
+            <select class="form-select" name="gender" required>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Region</label>
+            <select class="form-select" name="region" required>
+              <option value="Urban">Urban</option>
+              <option value="Rural">Rural</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Household Size</label>
+            <select class="form-select" name="household_size" required>
+              <option value="3 or fewer">3 or fewer</option>
+              <option value="More than 3">More than 3</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Mother's Education</label>
+            <select class="form-select" name="mother_education" required>
+              <option value="0">None</option>
+              <option value="1">Primary</option>
+              <option value="2">5th–9th grade</option>
+              <option value="3">Secondary</option>
+              <option value="4" selected>Higher education</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Father's Education</label>
+            <select class="form-select" name="father_education" required>
+              <option value="0">None</option>
+              <option value="1">Primary</option>
+              <option value="2">5th–9th grade</option>
+              <option value="3">Secondary</option>
+              <option value="4" selected>Higher education</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12 mt-4">
-        <h5 class="section-title"><i class="bi bi-house-heart me-2"></i>Support &amp; Access</h5>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Receives School Support?</label>
-        <select class="form-select" name="school_support" required>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Receives Family Educational Support?</label>
-        <select class="form-select" name="family_support" required>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Receives Paid Tutoring?</label>
-        <select class="form-select" name="paid_tutoring" required>
-          <option value="No">No</option>
-          <option value="Yes">Yes</option>
-        </select>
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Internet Access at Home?</label>
-        <select class="form-select" name="internet_access" required>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">2</div>
+          <div>
+            <p class="step-title">Academic Profile</p>
+            <p class="step-subtitle">Grades, study time and record</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <label class="form-label">Prior Grade 1 (0–20)</label>
+            <input type="number" step="0.1" class="form-control" name="prior_grade_1" min="0" max="20" value="12" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Prior Grade 2 (0–20)</label>
+            <input type="number" step="0.1" class="form-control" name="prior_grade_2" min="0" max="20" value="12" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Current Grade (0–20)</label>
+            <input type="number" step="0.1" class="form-control" name="current_grade" min="0" max="20" value="12" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Weekly Study Time</label>
+            <select class="form-select" name="weekly_study_time" required>
+              <option value="1">Less than 2 hrs</option>
+              <option value="2" selected>2 to 5 hrs</option>
+              <option value="3">5 to 10 hrs</option>
+              <option value="4">More than 10 hrs</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Past Failures</label>
+            <input type="number" class="form-control" name="past_failures" min="0" max="4" value="0" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Absences (this year)</label>
+            <input type="number" class="form-control" name="absences" min="0" max="100" value="4" required />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Extracurriculars</label>
+            <select class="form-select" name="extracurricular_activities" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12 mt-4 text-center">
-        <button type="submit" class="btn btn-lg btn-primary px-5">
-          <i class="bi bi-magic me-2"></i>Predict Eligibility
+      <div class="step-card">
+        <div class="step-header">
+          <div class="step-number">3</div>
+          <div>
+            <p class="step-title">Support &amp; Access</p>
+            <p class="step-subtitle">What resources you already have</p>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <label class="form-label">School Support</label>
+            <select class="form-select" name="school_support" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Family Support</label>
+            <select class="form-select" name="family_support" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Paid Tutoring</label>
+            <select class="form-select" name="paid_tutoring" required>
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Internet Access</label>
+            <select class="form-select" name="internet_access" required>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg px-5">
+          Predict Eligibility
+          <i class="bi bi-stars ms-2"></i>
         </button>
       </div>
     </form>
   </div>
-</div>
+</section>
 
 {% endblock %}
