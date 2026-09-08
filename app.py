@@ -27,8 +27,8 @@ def get_pipeline():
     if _pipeline is None:
         if not os.path.exists(MODEL_PATH):
             raise RuntimeError(
-                "Model file not found. Run `python src/data_generator.py` then "
-                "`python src/train_model.py` to generate the dataset and train the model."
+                "Model file not found. Run `python src/prepare_dataset.py` then "
+                "`python src/train_model.py` to build the dataset and train the model."
             )
         _pipeline = joblib.load(MODEL_PATH)
     return _pipeline
@@ -45,16 +45,21 @@ def get_metrics():
 FORM_FIELDS = [
     "age",
     "gender",
-    "gpa",
-    "family_income",
-    "household_size",
-    "extracurricular_score",
-    "community_service_hours",
-    "attendance_rate",
-    "has_disability",
-    "is_first_generation",
-    "previous_scholarship",
     "region",
+    "household_size",
+    "mother_education",
+    "father_education",
+    "weekly_study_time",
+    "past_failures",
+    "school_support",
+    "family_support",
+    "paid_tutoring",
+    "internet_access",
+    "extracurricular_activities",
+    "absences",
+    "prior_grade_1",
+    "prior_grade_2",
+    "current_grade",
 ]
 
 
@@ -70,16 +75,21 @@ def predict():
         applicant = {
             "age": int(form["age"]),
             "gender": form["gender"],
-            "gpa": float(form["gpa"]),
-            "family_income": float(form["family_income"]),
-            "household_size": int(form["household_size"]),
-            "extracurricular_score": float(form["extracurricular_score"]),
-            "community_service_hours": float(form["community_service_hours"]),
-            "attendance_rate": float(form["attendance_rate"]),
-            "has_disability": form["has_disability"],
-            "is_first_generation": form["is_first_generation"],
-            "previous_scholarship": form["previous_scholarship"],
             "region": form["region"],
+            "household_size": form["household_size"],
+            "mother_education": int(form["mother_education"]),
+            "father_education": int(form["father_education"]),
+            "weekly_study_time": int(form["weekly_study_time"]),
+            "past_failures": int(form["past_failures"]),
+            "school_support": form["school_support"],
+            "family_support": form["family_support"],
+            "paid_tutoring": form["paid_tutoring"],
+            "internet_access": form["internet_access"],
+            "extracurricular_activities": form["extracurricular_activities"],
+            "absences": int(form["absences"]),
+            "prior_grade_1": float(form["prior_grade_1"]),
+            "prior_grade_2": float(form["prior_grade_2"]),
+            "current_grade": float(form["current_grade"]),
         }
     except (KeyError, ValueError) as exc:
         return render_template("index.html", error=f"Invalid input: {exc}")

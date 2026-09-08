@@ -22,7 +22,7 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -30,22 +30,29 @@ DATA_PATH = "data/scholarship_data.csv"
 MODEL_PATH = "model/scholarship_pipeline.joblib"
 METRICS_PATH = "model/metrics.json"
 FEATURE_IMPORTANCE_PATH = "static/images/feature_importance.png"
+ADMISSION_REFERENCE_PATH = "data/raw/admission_predict.csv"
+ADMISSION_CHART_PATH = "static/images/admission_reference_chart.png"
 
 NUMERIC_FEATURES = [
     "age",
-    "gpa",
-    "family_income",
-    "household_size",
-    "extracurricular_score",
-    "community_service_hours",
-    "attendance_rate",
+    "mother_education",
+    "father_education",
+    "weekly_study_time",
+    "past_failures",
+    "absences",
+    "prior_grade_1",
+    "prior_grade_2",
+    "current_grade",
 ]
 CATEGORICAL_FEATURES = [
     "gender",
-    "has_disability",
-    "is_first_generation",
-    "previous_scholarship",
     "region",
+    "household_size",
+    "school_support",
+    "family_support",
+    "paid_tutoring",
+    "internet_access",
+    "extracurricular_activities",
 ]
 TARGET = "eligible"
 
@@ -57,10 +64,12 @@ def build_pipeline() -> Pipeline:
             ("cat", OneHotEncoder(handle_unknown="ignore"), CATEGORICAL_FEATURES),
         ]
     )
+    # Shallower/more-regularized than a large-dataset default since the
+    # real training set is small (395 rows) — this reduces overfitting.
     model = RandomForestClassifier(
-        n_estimators=300,
-        max_depth=10,
-        min_samples_leaf=3,
+        n_estimators=200,
+        max_depth=6,
+        min_samples_leaf=5,
         random_state=42,
         n_jobs=-1,
     )
@@ -90,12 +99,20 @@ def main() -> None:
     y_pred = pipeline.predict(X_test)
     y_proba = pipeline.predict_proba(X_test)[:, 1]
 
+    # With only ~395 real rows, a single train/test split is noisy, so we
+    # also report 5-fold cross-validated accuracy across the whole dataset
+    # for a more stable estimate.
+    cv_scores = cross_val_score(build_pipeline(), X, y, cv=5, scoring="accuracy")
+
     metrics = {
         "accuracy": accuracy_score(y_test, y_pred),
         "precision": precision_score(y_test, y_pred),
         "recall": recall_score(y_test, y_pred),
         "f1_score": f1_score(y_test, y_pred),
         "roc_auc": roc_auc_score(y_test, y_proba),
+        "cv_accuracy_mean": float(cv_scores.mean()),
+        "cv_accuracy_std": float(cv_scores.std()),
+        "training_rows": int(len(df)),
     }
 
     print("Evaluation on held-out test set:")
@@ -128,6 +145,28 @@ def main() -> None:
     print(f"\nSaved pipeline -> {MODEL_PATH}")
     print(f"Saved metrics -> {METRICS_PATH}")
     print(f"Saved feature importance chart -> {FEATURE_IMPORTANCE_PATH}")
+
+    # Supplementary real-world reference chart (About page): shows that
+    # academic merit (CGPA) tracks a real admissions-outcome dataset from a
+    # different, independent population — supporting evidence for weighting
+    # grades heavily in the merit component, without merging the two datasets.
+    admission_df = pd.read_csv(ADMISSION_REFERENCE_PATH)
+    admission_df.columns = [c.strip() for c in admission_df.columns]
+    plt.figure(figsize=(7, 5))
+    plt.scatter(
+        admission_df["CGPA"],
+        admission_df["Chance of Admit"],
+        alpha=0.5,
+        color="#7c3aed",
+        edgecolor="none",
+    )
+    plt.xlabel("CGPA (out of 10)")
+    plt.ylabel("Chance of Admit")
+    plt.title("Real-world reference: CGPA vs. admission chance\n(400 real applicants, Graduate Admission Prediction dataset)")
+    plt.tight_layout()
+    plt.savefig(ADMISSION_CHART_PATH, dpi=150)
+    plt.close()
+    print(f"Saved supplementary reference chart -> {ADMISSION_CHART_PATH}")
 
 
 if __name__ == "__main__":
