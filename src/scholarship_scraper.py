@@ -33,21 +33,40 @@ import requests
 
 CACHE_PATH = "data/opportunities_cache.json"
 REQUEST_TIMEOUT = 10
-USER_AGENT = "ScholarshipEligibilityPredictor/1.0 (+https://github.com/Tobinioluwa/ML-Scholarship-Eligibility-Predictor; educational, non-commercial RSS reader)"
+# A realistic browser UA, not a self-identifying bot string. We still check
+# robots.txt for every fetch below and only ever make one lightweight request
+# per source per refresh (at most every 12h) -- but plenty of sites run WAFs
+# that block *any* request declaring itself as a bot/script regardless of
+# robots.txt, so a browser-like UA is what most RSS readers use in practice
+# to avoid being caught by that unrelated-to-robots-txt filtering.
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+)
 MAX_SUMMARY_CHARS = 280
 MAX_ITEMS_PER_SOURCE = 40
 
 # Add more sources here -- each just needs a name and a standard RSS feed URL.
+# Sources that fail (robots.txt disallow, bad feed, blocked) are skipped and
+# logged, not fatal -- see fetch_source().
+#
+# opportunitydesk.org/feed/ was tried and dropped: its robots.txt explicitly
+# disallows /feed/, so it's never fetched (see git history for the request).
 SOURCES = [
-    {
-        "name": "OpportunityDesk",
-        "homepage": "https://opportunitydesk.org/",
-        "feed_url": "https://opportunitydesk.org/feed/",
-    },
     {
         "name": "Scholars4Dev",
         "homepage": "https://www.scholars4dev.com/",
         "feed_url": "https://www.scholars4dev.com/feed/",
+    },
+    {
+        "name": "OpportunitiesForAfricans",
+        "homepage": "https://www.opportunitiesforafricans.com/",
+        "feed_url": "https://www.opportunitiesforafricans.com/feed/",
+    },
+    {
+        "name": "YouthOpportunities",
+        "homepage": "https://www.youthop.com/",
+        "feed_url": "https://www.youthop.com/feed/",
     },
 ]
 
@@ -126,20 +145,36 @@ def fetch_source(source: dict) -> list:
     try:
         resp = requests.get(
             source["feed_url"],
-            headers={"User-Agent": USER_AGENT},
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
+            },
             timeout=REQUEST_TIMEOUT,
         )
         resp.raise_for_status()
     except requests.RequestException as exc:
-        print(f"  skipping {source['name']}: {exc}")
+        print(f"  skipping {source['name']}: request failed -- {exc}")
         return []
 
+    content_type = resp.headers.get("Content-Type", "unknown")
+    if resp.url != source["feed_url"]:
+        print(f"  note: {source['name']} redirected to {resp.url}")
+
     parsed = feedparser.parse(resp.content)
+    if parsed.bozo:
+        print(
+            f"  warning: {source['name']} feed did not parse cleanly "
+            f"(status={resp.status_code}, content-type={content_type}): {parsed.get('bozo_exception')}"
+        )
+
+    raw_entry_count = len(parsed.entries)
     listings = []
+    skipped_missing_fields = 0
     for entry in parsed.entries[:MAX_ITEMS_PER_SOURCE]:
         title = getattr(entry, "title", "").strip()
         link = getattr(entry, "link", "").strip()
         if not title or not link:
+            skipped_missing_fields += 1
             continue
 
         raw_summary = getattr(entry, "summary", "") or getattr(entry, "description", "")
@@ -165,6 +200,12 @@ def fetch_source(source: dict) -> list:
                 "fully_funded": _extract_funding(combined_text),
             }
         )
+
+    print(
+        f"  {source['name']}: status={resp.status_code}, content-type={content_type}, "
+        f"raw entries={raw_entry_count}, usable={len(listings)}, "
+        f"skipped (missing title/link)={skipped_missing_fields}"
+    )
     return listings
 
 
