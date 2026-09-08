@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Result · Scholarship Eligibility Predictor{% endblock %}
 {% block content %}
-
+<div class="container page-section">
 <div class="mx-auto result-card-wrapper">
   <div class="card shadow-sm result-card {{ 'result-eligible' if eligible else 'result-not-eligible' }}">
     <div class="card-body p-4 p-md-5 text-center">
@@ -63,6 +63,7 @@
       <i class="bi bi-arrow-left me-1"></i>Check Another Applicant
     </a>
   </div>
+</div>
 </div>
 
 {% endblock %}
