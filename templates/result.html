@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Result · Scholarship Eligibility Predictor{% endblock %}
+{% block content %}
+
+<div class="mx-auto result-card-wrapper">
+  <div class="card shadow-sm result-card {{ 'result-eligible' if eligible else 'result-not-eligible' }}">
+    <div class="card-body p-4 p-md-5 text-center">
+      {% if eligible %}
+        <div class="result-icon text-success"><i class="bi bi-patch-check-fill"></i></div>
+        <h2 class="fw-bold text-success mt-3">Likely Eligible</h2>
+      {% else %}
+        <div class="result-icon text-danger"><i class="bi bi-x-circle-fill"></i></div>
+        <h2 class="fw-bold text-danger mt-3">Likely Not Eligible</h2>
+      {% endif %}
+
+      <p class="text-muted mb-4">Estimated eligibility probability</p>
+
+      <div class="progress mb-2" style="height: 28px;">
+        <div
+          class="progress-bar {{ 'bg-success' if eligible else 'bg-danger' }}"
+          role="progressbar"
+          style="width: {{ probability }}%;"
+        >
+          {{ probability }}%
+        </div>
+      </div>
+      <p class="small text-muted">
+        This is a model-generated estimate trained on a synthetic dataset — use it as a
+        starting point, not a final decision.
+      </p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mt-4">
+    <div class="card-body p-4">
+      <h5 class="mb-3"><i class="bi bi-clipboard-data me-2"></i>Submitted Details</h5>
+      <div class="row row-cols-2 row-cols-md-3 g-3 small">
+        <div><span class="text-muted">Age:</span> {{ applicant.age }}</div>
+        <div><span class="text-muted">Gender:</span> {{ applicant.gender }}</div>
+        <div><span class="text-muted">Region:</span> {{ applicant.region }}</div>
+        <div><span class="text-muted">GPA:</span> {{ applicant.gpa }}</div>
+        <div><span class="text-muted">Attendance:</span> {{ applicant.attendance_rate }}%</div>
+        <div><span class="text-muted">Extracurricular Score:</span> {{ applicant.extracurricular_score }}</div>
+        <div><span class="text-muted">Community Service:</span> {{ applicant.community_service_hours }} hrs</div>
+        <div><span class="text-muted">Previous Scholarship:</span> {{ applicant.previous_scholarship }}</div>
+        <div><span class="text-muted">Family Income:</span> ${{ "{:,.0f}".format(applicant.family_income) }}</div>
+        <div><span class="text-muted">Household Size:</span> {{ applicant.household_size }}</div>
+        <div><span class="text-muted">Disability:</span> {{ applicant.has_disability }}</div>
+        <div><span class="text-muted">First-Generation:</span> {{ applicant.is_first_generation }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left me-1"></i>Check Another Applicant
+    </a>
+  </div>
+</div>
+
+{% endblock %}
