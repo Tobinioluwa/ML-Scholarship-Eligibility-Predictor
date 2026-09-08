@@ -102,11 +102,35 @@ records using the same column names, then re-run the training step below.
 4. A probability ≥ 50% is shown as "Likely Eligible"; otherwise "Likely Not
    Eligible" — along with the exact probability.
 
-## Deploying for free (optional)
+## Deploying for free
 
-Since this is a small Flask app, it can be deployed at no cost on platforms
-with free tiers such as Render, Railway, or PythonAnywhere. No paid APIs or
-services are used anywhere in this project.
+This repo is ready to deploy on [Render](https://render.com)'s free tier
+(no credit card required). It already includes:
+
+- `Procfile` — tells the host to run `gunicorn app:app` (a production server)
+- `render.yaml` — a Blueprint file Render can auto-detect
+- `runtime.txt` — pins the Python version
+
+**Steps:**
+
+1. Push this repo to GitHub (already done if you're reading this on GitHub).
+2. Go to [render.com](https://render.com) and sign in with your GitHub account.
+3. Click **New +** → **Web Service**, and select this repository.
+4. Render should auto-detect the settings from `render.yaml`. If asked manually:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn app:app`
+   - **Plan**: Free
+5. Click **Create Web Service**. After the build finishes (a couple of
+   minutes), Render gives you a public URL like
+   `https://ml-scholarship-eligibility-predictor.onrender.com` — open it to
+   use the live app.
+
+Note: on Render's free tier, the app "sleeps" after ~15 minutes of
+inactivity and takes ~30–60 seconds to wake up on the next visit — this is
+normal for free hosting and costs nothing.
+
+Railway and PythonAnywhere work similarly and are also free-tier friendly.
+No paid APIs or services are used anywhere in this project.
 
 ## Limitations & Disclaimer
 
