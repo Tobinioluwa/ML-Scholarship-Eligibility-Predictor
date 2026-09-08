@@ -2,21 +2,109 @@
 {% block title %}About the Model · Scholarship Eligibility Predictor{% endblock %}
 {% block content %}
 
-<div class="mx-auto" style="max-width: 780px;">
+<div class="mx-auto" style="max-width: 820px;">
   <h1 class="fw-bold mb-4">About the Model</h1>
 
   <div class="card shadow-sm mb-4">
     <div class="card-body p-4">
-      <h5>How it works</h5>
+      <h5><i class="bi bi-database me-2"></i>The Data — Real, Not Fabricated</h5>
+      <p class="text-muted">
+        This model is trained on <strong>real student records</strong>, not
+        synthetic/generated data. Two genuine, publicly available datasets
+        were used:
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Role</th>
+              <th>Size</th>
+              <th>Source &amp; Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>UCI Student Performance</strong></td>
+              <td>Primary training data</td>
+              <td>395 real students</td>
+              <td>
+                <a href="https://archive.ics.uci.edu/dataset/320/student+performance" target="_blank" rel="noopener">UCI Repository page</a>
+                &middot;
+                <a href="https://raw.githubusercontent.com/guipsamora/pandas_exercises/master/04_Apply/Students_Alcohol_Consumption/student-mat.csv" target="_blank" rel="noopener">direct CSV</a>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Graduate Admission Prediction</strong></td>
+              <td>Supplementary reference only</td>
+              <td>400 real applicants</td>
+              <td>
+                <a href="https://www.kaggle.com/datasets/mohansacharya/graduate-admissions" target="_blank" rel="noopener">Kaggle page</a>
+                &middot;
+                <a href="https://raw.githubusercontent.com/divyansha1115/Graduate-Admission-Prediction/master/Admission_Predict.csv" target="_blank" rel="noopener">direct CSV</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-muted small mb-0">
+        Both raw files are committed unmodified in this repository at
+        <code>data/raw/</code>, with full citations in
+        <code>data/raw/SOURCES.md</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <h5><i class="bi bi-info-circle me-2"></i>Why the Eligibility Label Had to Be Derived</h5>
       <p class="text-muted mb-0">
-        The predictor is a <strong>Random Forest classifier</strong> trained with
-        scikit-learn on a documented, rule-based synthetic dataset of 6,000 student
-        records (see <code>src/data_generator.py</code>). Features include academic
-        performance, financial need, extracurricular engagement, attendance, and
-        household context. Numeric fields are standardized and categorical fields
-        one-hot encoded inside a single scikit-learn <code>Pipeline</code>, so the
-        exact same transformations used in training are applied to every new
-        prediction.
+        No public dataset records real students' actual scholarship
+        decisions — that's sensitive financial and personal information tied
+        to real people, so it isn't released anywhere openly (we checked;
+        the only public "scholarship datasets" are lists of scholarship
+        <em>programs</em>, not applicant-level outcomes). So while every
+        <strong>row</strong> here is a real student, the <strong>eligible</strong>
+        label is computed with a fully transparent, deterministic rule
+        (no randomness) applied to that student's real attributes — it is
+        not an actual historical committee decision. Treat this project's
+        accuracy numbers as a demonstration of the ML pipeline, not a
+        validated real-world policy.
+      </p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4">
+      <h5><i class="bi bi-calculator me-2"></i>How Eligibility Is Derived</h5>
+      <p class="text-muted">Computed once, per real student, in <code>src/prepare_dataset.py</code>:</p>
+      <ul class="text-muted">
+        <li>
+          <strong>Merit score (55% weight):</strong> a weighted average of
+          the student's three real grade periods (20% + 30% + 50%, recent
+          grades weighted more), minus a penalty per past class failure,
+          plus a small bonus for weekly study time.
+        </li>
+        <li>
+          <strong>Need score (35% weight):</strong> higher when parents'
+          average education level is lower, when there's no home internet
+          access, when the student doesn't receive paid tutoring, when
+          household size is larger, and when there's no family educational
+          support — all real fields, used as standard socioeconomic proxies.
+        </li>
+        <li>
+          <strong>Small bonuses (10% weight):</strong> having extracurricular
+          activities, and below-median absences.
+        </li>
+        <li>The top ~40% of students by combined score are labeled <code>eligible = 1</code>.</li>
+      </ul>
+      <p class="text-muted small mb-0">
+        Columns unrelated to scholarship eligibility (alcohol consumption,
+        romantic relationship status, going-out frequency, specific school
+        name) were deliberately excluded from both the label formula and the
+        model's inputs, even though they exist in the real dataset.
       </p>
     </div>
   </div>
@@ -24,11 +112,11 @@
   {% if metrics %}
   <div class="card shadow-sm mb-4">
     <div class="card-body p-4">
-      <h5 class="mb-3">Held-out Test Set Performance</h5>
+      <h5 class="mb-3">Model Performance</h5>
       <div class="row row-cols-2 row-cols-md-3 g-3 text-center">
         <div>
           <div class="fw-bold fs-4">{{ "%.1f"|format(metrics.accuracy * 100) }}%</div>
-          <div class="text-muted small">Accuracy</div>
+          <div class="text-muted small">Test Accuracy</div>
         </div>
         <div>
           <div class="fw-bold fs-4">{{ "%.1f"|format(metrics.precision * 100) }}%</div>
@@ -46,7 +134,16 @@
           <div class="fw-bold fs-4">{{ "%.3f"|format(metrics.roc_auc) }}</div>
           <div class="text-muted small">ROC-AUC</div>
         </div>
+        <div>
+          <div class="fw-bold fs-4">{{ "%.1f"|format(metrics.cv_accuracy_mean * 100) }}% ± {{ "%.1f"|format(metrics.cv_accuracy_std * 100) }}</div>
+          <div class="text-muted small">5-Fold CV Accuracy</div>
+        </div>
       </div>
+      <p class="text-muted small mt-3 mb-0">
+        Trained on {{ metrics.training_rows | int }} real student records (a
+        single 80/20 split is noisy at this size, so 5-fold cross-validation
+        is reported alongside it for a more stable estimate).
+      </p>
     </div>
   </div>
   {% endif %}
@@ -62,13 +159,41 @@
     </div>
   </div>
 
+  <div class="card shadow-sm mb-4">
+    <div class="card-body p-4 text-center">
+      <h5 class="mb-2">Supplementary Real-World Reference</h5>
+      <p class="text-muted small">
+        From the independent Graduate Admission Prediction dataset (400 real
+        applicants) — shown here as outside evidence that academic merit
+        (CGPA) tracks real admission outcomes, supporting the decision to
+        weight grades heavily in the merit score above. This dataset is
+        <strong>not merged</strong> into the training data (different
+        population) and is not used by the deployed model.
+      </p>
+      <img
+        src="{{ url_for('static', filename='images/admission_reference_chart.png') }}"
+        alt="CGPA vs chance of admit reference chart"
+        class="img-fluid rounded"
+      />
+    </div>
+  </div>
+
   <div class="card shadow-sm border-warning-subtle mb-4">
     <div class="card-body p-4">
       <h5><i class="bi bi-exclamation-triangle text-warning me-2"></i>Limitations</h5>
       <ul class="text-muted mb-0">
-        <li>Trained on synthetic data — predictions illustrate the ML pipeline, not a real financial-aid policy.</li>
-        <li>To use real applicant data, replace <code>data/scholarship_data.csv</code> with your own records
-          (same column names) and re-run <code>src/train_model.py</code>.</li>
+        <li>The "eligible" label is a documented derived rule, not a real
+          committee's historical decision — no such public dataset exists.</li>
+        <li>Only 395 training rows from two Portuguese secondary schools —
+          results won't generalize to other regions, education systems, or
+          scholarship programs without retraining on local data.</li>
+        <li>Because the label is partly a function of grades, and grades are
+          also model inputs, reported accuracy is optimistic relative to a
+          real, independently-labeled dataset.</li>
+        <li>To use your own institution's real historical data, replace
+          <code>data/raw/student-mat.csv</code> (keeping equivalent columns)
+          and re-run <code>src/prepare_dataset.py</code> then
+          <code>src/train_model.py</code>.</li>
         <li>Always pair automated screening with human review before final decisions.</li>
       </ul>
     </div>

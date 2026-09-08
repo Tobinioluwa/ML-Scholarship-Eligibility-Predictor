@@ -25,7 +25,9 @@
         </div>
       </div>
       <p class="small text-muted">
-        This is a model-generated estimate trained on a synthetic dataset — use it as a
+        This is a model-generated estimate trained on real student records, with the
+        eligibility label derived from a documented merit + need rule (see the
+        <a href="{{ url_for('about') }}">About the Model</a> page) — use it as a
         starting point, not a final decision.
       </p>
     </div>
@@ -38,15 +40,20 @@
         <div><span class="text-muted">Age:</span> {{ applicant.age }}</div>
         <div><span class="text-muted">Gender:</span> {{ applicant.gender }}</div>
         <div><span class="text-muted">Region:</span> {{ applicant.region }}</div>
-        <div><span class="text-muted">GPA:</span> {{ applicant.gpa }}</div>
-        <div><span class="text-muted">Attendance:</span> {{ applicant.attendance_rate }}%</div>
-        <div><span class="text-muted">Extracurricular Score:</span> {{ applicant.extracurricular_score }}</div>
-        <div><span class="text-muted">Community Service:</span> {{ applicant.community_service_hours }} hrs</div>
-        <div><span class="text-muted">Previous Scholarship:</span> {{ applicant.previous_scholarship }}</div>
-        <div><span class="text-muted">Family Income:</span> ${{ "{:,.0f}".format(applicant.family_income) }}</div>
         <div><span class="text-muted">Household Size:</span> {{ applicant.household_size }}</div>
-        <div><span class="text-muted">Disability:</span> {{ applicant.has_disability }}</div>
-        <div><span class="text-muted">First-Generation:</span> {{ applicant.is_first_generation }}</div>
+        <div><span class="text-muted">Mother's Education:</span> {{ applicant.mother_education }}/4</div>
+        <div><span class="text-muted">Father's Education:</span> {{ applicant.father_education }}/4</div>
+        <div><span class="text-muted">Weekly Study Time:</span> level {{ applicant.weekly_study_time }}/4</div>
+        <div><span class="text-muted">Past Failures:</span> {{ applicant.past_failures }}</div>
+        <div><span class="text-muted">Absences:</span> {{ applicant.absences }}</div>
+        <div><span class="text-muted">Prior Grade 1:</span> {{ applicant.prior_grade_1 }}/20</div>
+        <div><span class="text-muted">Prior Grade 2:</span> {{ applicant.prior_grade_2 }}/20</div>
+        <div><span class="text-muted">Current Grade:</span> {{ applicant.current_grade }}/20</div>
+        <div><span class="text-muted">School Support:</span> {{ applicant.school_support }}</div>
+        <div><span class="text-muted">Family Support:</span> {{ applicant.family_support }}</div>
+        <div><span class="text-muted">Paid Tutoring:</span> {{ applicant.paid_tutoring }}</div>
+        <div><span class="text-muted">Internet Access:</span> {{ applicant.internet_access }}</div>
+        <div><span class="text-muted">Extracurriculars:</span> {{ applicant.extracurricular_activities }}</div>
       </div>
     </div>
   </div>

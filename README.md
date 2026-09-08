@@ -9,36 +9,50 @@ interface.
 - **Cost**: $0 — every dependency is free and open-source, and it runs entirely
   on your own machine
 
-## Why a synthetic dataset?
+## The data — real, not synthetic
 
-There isn't a widely available, download-without-authentication dataset of
-*individual applicant* scholarship eligibility records — the public datasets
-under that name are either lists of scholarship *programs* (not applicants)
-or require a Kaggle account/API key. To keep this project free, reproducible,
-and runnable offline, `src/data_generator.py` generates a realistic synthetic
-dataset from a **documented rule** (academic merit + financial need +
-engagement + attendance + priority bonuses, plus random noise). The exact
-formula is in that file's comments.
+This project trains on **real student records**, not generated data:
 
-To use real data instead: replace `data/scholarship_data.csv` with your own
-records using the same column names, then re-run the training step below.
+- **Primary training data**: [UCI Student Performance dataset](https://archive.ics.uci.edu/dataset/320/student+performance)
+  — 395 real students from two Portuguese secondary schools. Direct CSV
+  (no login required): https://raw.githubusercontent.com/guipsamora/pandas_exercises/master/04_Apply/Students_Alcohol_Consumption/student-mat.csv
+- **Supplementary reference only**: [Graduate Admission Prediction dataset](https://www.kaggle.com/datasets/mohansacharya/graduate-admissions)
+  — 400 real applicant records, used only to produce a supporting real-world
+  chart on the `/about` page (not merged into training data). Direct CSV:
+  https://raw.githubusercontent.com/divyansha1115/Graduate-Admission-Prediction/master/Admission_Predict.csv
+
+Both raw files are committed unmodified at `data/raw/`, with full citations
+and licenses in `data/raw/SOURCES.md`.
+
+**No public dataset records real students' actual scholarship decisions**
+(that's sensitive personal/financial data, so it's never released). So while
+every row is a real student, the `eligible` label is computed with a fully
+documented, deterministic rule (merit from real grades + need from real
+socioeconomic proxies — see `src/prepare_dataset.py` and the `/about` page
+for the exact formula) — it is not an actual historical committee decision.
+See **Limitations** below.
+
+To retrain on your own institution's real historical data instead: replace
+`data/raw/student-mat.csv` with your own records (matching columns), then
+re-run the steps below.
 
 ## Features used
 
 | Feature | Description |
 |---|---|
-| `age` | Applicant age |
-| `gender` | Male / Female / Other |
-| `gpa` | GPA on a 0.0–4.0 scale |
-| `family_income` | Annual family income (USD) |
-| `household_size` | Number of people in the household |
-| `extracurricular_score` | Extracurricular engagement, 0–10 |
-| `community_service_hours` | Community service hours in the past year |
-| `attendance_rate` | School attendance percentage |
-| `has_disability` | Yes / No |
-| `is_first_generation` | First-generation college student, Yes / No |
-| `previous_scholarship` | Previously received a scholarship, Yes / No |
-| `region` | Urban / Suburban / Rural |
+| `age` | Student age |
+| `gender` | Male / Female |
+| `region` | Urban / Rural |
+| `household_size` | "3 or fewer" / "More than 3" people |
+| `mother_education`, `father_education` | 0 (none) – 4 (higher education) |
+| `weekly_study_time` | 1 (<2h) – 4 (>10h) |
+| `past_failures` | Count of past class failures |
+| `school_support`, `family_support` | Yes / No |
+| `paid_tutoring` | Receives paid extra tutoring, Yes / No |
+| `internet_access` | Internet access at home, Yes / No |
+| `extracurricular_activities` | Yes / No |
+| `absences` | Number of school absences |
+| `prior_grade_1`, `prior_grade_2`, `current_grade` | Grades on a 0–20 scale |
 
 ## Project structure
 
@@ -47,13 +61,14 @@ records using the same column names, then re-run the training step below.
 ├── app.py                     # Flask web app
 ├── requirements.txt
 ├── data/
-│   └── scholarship_data.csv   # Generated synthetic dataset
+│   ├── raw/                   # Real, unmodified source datasets + SOURCES.md
+│   └── scholarship_data.csv   # Built dataset (real rows + derived label)
 ├── src/
-│   ├── data_generator.py      # Creates the synthetic dataset
+│   ├── prepare_dataset.py     # Builds the dataset from real data (documented label rule)
 │   └── train_model.py         # Trains + evaluates + saves the model
 ├── model/
 │   ├── scholarship_pipeline.joblib  # Trained scikit-learn Pipeline
-│   └── metrics.json                 # Held-out test metrics
+│   └── metrics.json                 # Held-out test + cross-validation metrics
 ├── templates/                 # HTML (Jinja2) templates
 └── static/                    # CSS + generated charts
 ```
@@ -66,10 +81,10 @@ records using the same column names, then re-run the training step below.
    pip install -r requirements.txt
    ```
 
-2. **Generate the dataset**:
+2. **Build the dataset** (from the real, committed source data):
 
    ```bash
-   python src/data_generator.py
+   python src/prepare_dataset.py
    ```
 
 3. **Train the model**:
@@ -134,6 +149,14 @@ No paid APIs or services are used anywhere in this project.
 
 ## Limitations & Disclaimer
 
-This tool is trained on synthetic data for demonstration purposes and should
-**not** be used as the sole basis for real financial-aid or scholarship
-decisions. Always pair automated screening with human review.
+- The `eligible` label is a documented derived rule, not a real committee's
+  historical decision — no such public dataset exists for privacy reasons.
+- Only 395 training rows from two Portuguese secondary schools — this won't
+  generalize to other regions or scholarship programs without retraining on
+  local data.
+- Because the label is partly a function of grades, and grades are also
+  model inputs, reported accuracy is optimistic relative to a truly
+  independent, real-world labeled dataset.
+- This tool should **not** be used as the sole basis for real financial-aid
+  or scholarship decisions. Always pair automated screening with human
+  review.
