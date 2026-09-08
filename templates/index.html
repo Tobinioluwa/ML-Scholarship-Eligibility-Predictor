@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Predict Eligibility · Scholarship Eligibility Predictor{% endblock %}
+{% block content %}
+
+<div class="hero text-center mb-5">
+  <h1 class="fw-bold">Check Scholarship Eligibility in Seconds</h1>
+  <p class="lead text-muted">
+    Fill in the applicant's details below and our machine learning model will
+    estimate their scholarship eligibility.
+  </p>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="card shadow-sm form-card mx-auto">
+  <div class="card-body p-4 p-md-5">
+    <form action="{{ url_for('predict') }}" method="post" class="row g-4">
+
+      <div class="col-12">
+        <h5 class="section-title"><i class="bi bi-person-lines-fill me-2"></i>Personal Details</h5>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Age</label>
+        <input type="number" class="form-control" name="age" min="14" max="30" value="19" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Gender</label>
+        <select class="form-select" name="gender" required>
+          <option value="Female">Female</option>
+          <option value="Male">Male</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Region</label>
+        <select class="form-select" name="region" required>
+          <option value="Urban">Urban</option>
+          <option value="Suburban">Suburban</option>
+          <option value="Rural">Rural</option>
+        </select>
+      </div>
+
+      <div class="col-12 mt-4">
+        <h5 class="section-title"><i class="bi bi-mortarboard me-2"></i>Academic Profile</h5>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">GPA (0.0 – 4.0)</label>
+        <input type="number" step="0.01" class="form-control" name="gpa" min="0" max="4" value="3.4" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Attendance Rate (%)</label>
+        <input type="number" step="0.1" class="form-control" name="attendance_rate" min="0" max="100" value="90" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Extracurricular Score (0 – 10)</label>
+        <input type="number" step="0.1" class="form-control" name="extracurricular_score" min="0" max="10" value="6" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Community Service Hours (past year)</label>
+        <input type="number" step="1" class="form-control" name="community_service_hours" min="0" max="500" value="30" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Previously Received a Scholarship?</label>
+        <select class="form-select" name="previous_scholarship" required>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="col-12 mt-4">
+        <h5 class="section-title"><i class="bi bi-house-heart me-2"></i>Household &amp; Financial Details</h5>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Annual Family Income (USD)</label>
+        <input type="number" step="100" class="form-control" name="family_income" min="0" value="35000" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Household Size</label>
+        <input type="number" class="form-control" name="household_size" min="1" max="15" value="4" required />
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Has a Disability?</label>
+        <select class="form-select" name="has_disability" required>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">First-Generation College Student?</label>
+        <select class="form-select" name="is_first_generation" required>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="col-12 mt-4 text-center">
+        <button type="submit" class="btn btn-lg btn-primary px-5">
+          <i class="bi bi-magic me-2"></i>Predict Eligibility
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+:root {
+  --brand-start: #4f46e5;
+  --brand-end: #7c3aed;
+}
+
+body {
+  background-color: #f7f7fb;
+  color: #1f2937;
+}
+
+.app-navbar {
+  background: linear-gradient(90deg, var(--brand-start), var(--brand-end));
+}
+
+.hero h1 {
+  background: linear-gradient(90deg, var(--brand-start), var(--brand-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-card {
+  max-width: 900px;
+  border: none;
+  border-radius: 1rem;
+}
+
+.section-title {
+  color: var(--brand-start);
+  font-weight: 600;
+  border-bottom: 1px solid #eef0f6;
+  padding-bottom: 0.5rem;
+}
+
+.card {
+  border: none;
+  border-radius: 1rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--brand-start), var(--brand-end));
+  border: none;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background: linear-gradient(90deg, #4338ca, #6d28d9);
+}
+
+.btn-outline-primary {
+  color: var(--brand-start);
+  border-color: var(--brand-start);
+}
+
+.btn-outline-primary:hover {
+  background: var(--brand-start);
+  border-color: var(--brand-start);
+}
+
+.result-card-wrapper {
+  max-width: 700px;
+}
+
+.result-icon {
+  font-size: 3.5rem;
+}
+
+.result-eligible {
+  border-top: 6px solid #198754;
+}
+
+.result-not-eligible {
+  border-top: 6px solid #dc3545;
+}
