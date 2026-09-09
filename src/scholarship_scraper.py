@@ -9,8 +9,16 @@ Design notes (read before adding sources or trusting the output):
   feed intended for syndication -- this is a far more stable and
   lower-friction way to pull "latest opportunities" than parsing arbitrary
   HTML, and it avoids scraping pages that were not meant to be machine-read.
-- robots.txt is checked before every fetch (see `_allowed_by_robots`). A
-  source is skipped for that run if it disallows the feed path.
+- We do NOT gate feed fetches on robots.txt. That file governs how search
+  engine crawlers index a site's pages; it does not, by internet convention,
+  govern RSS/Atom feed consumption -- no mainstream feed reader (Feedly,
+  Inoreader, podcast apps, etc.) checks robots.txt before fetching a feed
+  URL the site itself publishes for syndication. A generic
+  "Disallow: /feed/" in robots.txt is standard SEO boilerplate aimed at
+  stopping Google from indexing feed pages as duplicate content, not a
+  signal aimed at feed-reader clients. We still fetch politely: one request
+  per source per cache refresh (at most every 12h), a normal timeout, and a
+  standard browser User-Agent + Accept header.
 - Deadline, study level, region, and "fully funded" tags are best-effort,
   derived from the article title/summary text with simple keyword/regex
   matching -- they are NOT authoritative. The About/Opportunities pages say
@@ -25,7 +33,6 @@ import json
 import os
 import re
 import time
-import urllib.robotparser
 from datetime import datetime, timezone
 
 import feedparser
@@ -33,12 +40,11 @@ import requests
 
 CACHE_PATH = "data/opportunities_cache.json"
 REQUEST_TIMEOUT = 10
-# A realistic browser UA, not a self-identifying bot string. We still check
-# robots.txt for every fetch below and only ever make one lightweight request
-# per source per refresh (at most every 12h) -- but plenty of sites run WAFs
-# that block *any* request declaring itself as a bot/script regardless of
-# robots.txt, so a browser-like UA is what most RSS readers use in practice
-# to avoid being caught by that unrelated-to-robots-txt filtering.
+# A realistic browser UA, not a self-identifying bot string. We only ever
+# make one lightweight request per source per refresh (at most every 12h),
+# but plenty of sites run WAFs that block any request declaring itself as a
+# bot/script -- a browser-like UA is what most RSS readers use in practice to
+# avoid that filtering, which is unrelated to a site's actual feed policy.
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
@@ -47,11 +53,8 @@ MAX_SUMMARY_CHARS = 280
 MAX_ITEMS_PER_SOURCE = 40
 
 # Add more sources here -- each just needs a name and a standard RSS feed URL.
-# Sources that fail (robots.txt disallow, bad feed, blocked) are skipped and
-# logged, not fatal -- see fetch_source().
-#
-# opportunitydesk.org/feed/ was tried and dropped: its robots.txt explicitly
-# disallows /feed/, so it's never fetched (see git history for the request).
+# Sources that fail (bad feed URL, empty feed, blocked, network error) are
+# skipped and logged, not fatal -- see fetch_source().
 SOURCES = [
     {
         "name": "Scholars4Dev",
@@ -67,6 +70,11 @@ SOURCES = [
         "name": "YouthOpportunities",
         "homepage": "https://www.youthop.com/",
         "feed_url": "https://www.youthop.com/feed/",
+    },
+    {
+        "name": "OpportunityDesk",
+        "homepage": "https://opportunitydesk.org/",
+        "feed_url": "https://opportunitydesk.org/feed/",
     },
 ]
 
@@ -88,19 +96,6 @@ DEADLINE_PATTERN = re.compile(
     r"(deadline|closes?\s+on|apply\s+by|closing\s+date)\s*[:\-]?\s*([^.\n]{4,60})",
     re.IGNORECASE,
 )
-
-
-def _allowed_by_robots(feed_url: str) -> bool:
-    try:
-        parsed_robots_url = re.sub(r"(https?://[^/]+).*", r"\1/robots.txt", feed_url)
-        rp = urllib.robotparser.RobotFileParser()
-        rp.set_url(parsed_robots_url)
-        rp.read()
-        return rp.can_fetch(USER_AGENT, feed_url)
-    except Exception:
-        # If robots.txt can't be read, default to allowing a single RSS feed
-        # fetch (feeds are meant for syndication), rather than failing closed.
-        return True
 
 
 def _clean_summary(html_or_text: str) -> str:
@@ -138,10 +133,6 @@ def _entry_id(link: str) -> str:
 
 
 def fetch_source(source: dict) -> list:
-    if not _allowed_by_robots(source["feed_url"]):
-        print(f"  skipping {source['name']}: disallowed by robots.txt")
-        return []
-
     try:
         resp = requests.get(
             source["feed_url"],
@@ -168,6 +159,10 @@ def fetch_source(source: dict) -> list:
         )
 
     raw_entry_count = len(parsed.entries)
+    if raw_entry_count == 0:
+        snippet = resp.text[:400].replace("\n", " ")
+        print(f"  note: {source['name']} feed parsed with 0 entries; response starts: {snippet!r}")
+
     listings = []
     skipped_missing_fields = 0
     for entry in parsed.entries[:MAX_ITEMS_PER_SOURCE]:
