@@ -55,6 +55,16 @@ MAX_ITEMS_PER_SOURCE = 40
 # Add more sources here -- each just needs a name and a standard RSS feed URL.
 # Sources that fail (bad feed URL, empty feed, blocked, network error) are
 # skipped and logged, not fatal -- see fetch_source().
+#
+# Scholars4Dev is kept even though its feed currently parses as valid RSS
+# with zero <item> entries (confirmed via production logs, not a bug on our
+# end) -- harmless to leave in in case that changes, and the diagnostic log
+# will say so on every refresh rather than silently contributing nothing.
+#
+# youthop.com/feed/ was tried and dropped: confirmed 404 in production. Its
+# scholarships appear to live under /scholarships/ rather than the site
+# root, so its feed (if any) is likely at a different path -- revisit if a
+# correct URL is found.
 SOURCES = [
     {
         "name": "Scholars4Dev",
@@ -65,11 +75,6 @@ SOURCES = [
         "name": "OpportunitiesForAfricans",
         "homepage": "https://www.opportunitiesforafricans.com/",
         "feed_url": "https://www.opportunitiesforafricans.com/feed/",
-    },
-    {
-        "name": "YouthOpportunities",
-        "homepage": "https://www.youthop.com/",
-        "feed_url": "https://www.youthop.com/feed/",
     },
     {
         "name": "OpportunityDesk",
